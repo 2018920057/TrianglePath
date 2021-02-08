@@ -1,8 +1,12 @@
 use std::cmp;
 use std::io;
+use std::collections::HashMap;
 
 static mut triangle: [[i32;10];10] = [[0;10];10];
 static mut height: usize = 0;
+//cache.get((y,x)) = y,x에서부터 끝까지의 최대합 
+static cache: HashMap<(usize,usize),i32> = HashMap::new();
+
 //높이가 n인 lower triangular matrix가 입력되었을 때,
 //좌상에서 시작하여 아래쪽이나 그 오른쪽으로만 이동할 수 있다면
 //바닥에 닿았을 때의 최대합 구하기
@@ -31,7 +35,7 @@ fn main() {
       println!();
     }
     //최장경로 출력
-    println!("최장경로: {}",pathSum(0,0,0));
+    println!("최장경로: {}",pathSum3(0,0));
   }
 }
 
@@ -40,7 +44,18 @@ unsafe fn pathSum(y:usize, x:usize, sum:i32) -> i32 {
   if y==height-1 {return sum+triangle[y][x];}
   cmp::max(pathSum(y+1,x,sum+triangle[y][x]),pathSum(y+1,x+1,sum+triangle[y][x]))
 }
-//현재 위치가 (y,x)일 때 남은 길 중 최대 합 구하기
+//현재 위치가 (y,x)일 때 남은 길 중 최대 합 구하기 (최적 부분 구조)
 unsafe fn pathSum2(y:usize, x:usize) -> i32 {
-  //TODO
+  if y==height-1 {return triangle[y][x];}
+  triangle[y][x]+cmp::max(pathSum2(y+1,x),pathSum2(y+1,x+1))
+}
+//pathSum2를 memoization한 것
+unsafe fn pathSum3(y:usize, x:usize) -> i32 {
+  if y==height-1 {return triangle[y][x];}
+  //memoization
+  let ret = cache.entry((y,x)).or_insert((y,x));
+  match *ret{
+    Some(value) => value,
+    None => *ret = triangle[y][x]+cmp::max(pathSum2(y+1,x),pathSum2(y+1,x+1)),
+  }
 }
