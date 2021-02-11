@@ -1,15 +1,7 @@
-#[macro_use]
-extern crate lazy_static;
-
 use std::cmp;
 use std::io;
 use std::collections::HashMap;
-use std::sync::Mutex;
 
-//cache.lock().unwrap().get((y,x)) = y,x에서부터 끝까지의 최대합 
-lazy_static! {
-    static ref cache: Mutex<HashMap<(usize,usize),i32>> = Mutex::new(HashMap::new());
-}
 static mut triangle: [[i32;10];10] = [[0;10];10];
 static mut height: usize = 0;
 
@@ -36,12 +28,14 @@ fn main() {
     println!("삼각형:");
     for i in 0..height {
       for j in 0..i+1 {
-        print!("{}",triangle[i][j]);
+        print!("{} ",triangle[i][j]);
       }
       println!();
     }
     //최장경로 출력
-    println!("최장경로: {}",pathSum3(0,0));
+    //cache.get((y,x)) = y,x에서부터 끝까지의 최대합 
+    let mut cache: HashMap<(usize,usize),i32> = HashMap::new();
+    println!("최장경로: {}",pathSum3(0,0,&mut cache));
   }
 }
 
@@ -56,8 +50,9 @@ unsafe fn pathSum2(y:usize, x:usize) -> i32 {
   triangle[y][x]+cmp::max(pathSum2(y+1,x),pathSum2(y+1,x+1))
 }
 //pathSum2를 memoization한 것
-unsafe fn pathSum3(y:usize, x:usize) -> i32 {
+unsafe fn pathSum3(y:usize, x:usize, cache: &mut HashMap<(usize,usize),i32>) -> i32 {
   if y==height-1 {return triangle[y][x];}
   //memoization
-  *cache.lock().unwrap().entry((y,x)).or_insert(triangle[y][x]+cmp::max(pathSum3(y+1,x),pathSum3(y+1,x+1)))
+  let max: i32 = cmp::max(pathSum3(y+1,x,cache),pathSum3(y+1,x+1,cache));
+  *cache.entry((y,x)).or_insert(triangle[y][x]+max)
 }
