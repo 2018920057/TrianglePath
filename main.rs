@@ -53,6 +53,9 @@ unsafe fn pathSum2(y:usize, x:usize) -> i32 {
 unsafe fn pathSum3(y:usize, x:usize, cache: &mut HashMap<(usize,usize),i32>) -> i32 {
   if y==height-1 {return triangle[y][x];}
   //memoization
-  let max: i32 = cmp::max(pathSum3(y+1,x,cache),pathSum3(y+1,x+1,cache));
+  let max: i32 = match cache.get(&(y,x)){
+    Some(_) => 0,
+    None => cmp::max(pathSum3(y+1,x,cache),pathSum3(y+1,x+1,cache)),
+  };
   *cache.entry((y,x)).or_insert(triangle[y][x]+max)
 }
